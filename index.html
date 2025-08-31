@@ -9,8 +9,19 @@
 <body>
     <div id="splashScreen">
         <div class="splash-content">
-            <h1>Welcome to</h1>
-            <h2>IBA Real Estate</h2>
+            <div class="logo-container">
+                <div class="logo-shape">
+                    <svg viewBox="0 0 100 100" class="building-icon">
+                        <polygon points="15,45 50,15 85,45" fill="#ffffff"/>
+                        <rect x="25" y="45" width="50" height="40" fill="#ffffff"/>
+                        <rect x="42.5" y="65" width="15" height="20" fill="#3498db"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="welcome-text">
+                <h1 class="line-1">Welcome to</h1>
+                <h2 class="line-2">IBA Real Estate</h2>
+            </div>
         </div>
     </div>
 
@@ -75,7 +86,7 @@
                             <div class="form-group"><label for="monthlyRent">Monthly Rent</label><input type="number" id="monthlyRent" required></div>
                             <div class="form-group"><label for="tenantName">Tenant Name</label><input type="text" id="tenantName" required></div>
                             <div class="form-group"><label for="email">Email</label><input type="email" id="email"></div>
-                            <div class="form-group"><label for="contactNo">Contact No.</label><input type="tel" id="contactNo"></div>
+                            <div class="form-group"><label for="contactNo">Contact No.</label><input type="tel" id="contactNo" placeholder="55123456"></div>
                             <div class="form-group"><label for="startDate">Start Date</label><input type="date" id="startDate" required></div>
                             <div class="form-group"><label for="endDate">End Date</label><input type="date" id="endDate" required></div>
                             <div class="form-group-full"><label for="notes">Notes</label><textarea id="notes" placeholder="Any additional notes..."></textarea></div>
@@ -108,7 +119,7 @@
                 </form>
                 <div id="printArea" class="table-container">
                     <table id="searchResultTable">
-                        <thead><tr><th colspan="9">SEARCH RESULTS</th></tr></thead>
+                        <thead><tr><th colspan="9">PROPERTY</th></tr></thead>
                         <tbody id="searchResultList"></tbody>
                     </table>
                 </div>
