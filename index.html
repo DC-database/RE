@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Tenant Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="sideNav" class="sidenav">
+        <a href="javascript:void(0)" class="close-btn" id="closeBtn">&times;</a>
+        <h2>Menu</h2>
+        <a href="#" class="nav-link" id="dashboardLink">📊 Dashboard</a>
+        <a href="#" class="nav-link" id="dataEntryLink">📝 Data Entry</a>
+        <a href="#" class="nav-link" id="searchLink">🔍 Search</a>
+        <hr>
+        <div id="auth-container">
+             <h3>Admin Login</h3>
+            <form id="loginForm">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+            <div id="userInfo" class="hidden">
+                <p id="authStatus">You are not logged in.</p>
+                <button id="logoutBtn">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboardView" class="hidden">
+         <header>
+            <span id="openBtn1" class="open-btn">&#9776;</span>
+            <h1>Dashboard</h1>
+        </header>
+        <div class="container">
+            <h2>Overview</h2>
+            <p>Dashboard widgets and analytics will be displayed here.</p>
+        </div>
+    </div>
+
+    <div id="dataEntryView">
+        <header>
+            <span id="openBtn2" class="open-btn">&#9776;</span>
+            <h1>Data Entry</h1>
+        </header>
+        
+        <div class="container">
+            <div class="form-container">
+                <fieldset id="form-fieldset" disabled>
+                    <form id="tenantForm">
+                        <input type="hidden" id="tenantId">
+                        
+                        <div class="form-group-full">
+                            <label>Property</label>
+                            <div class="property-selection">
+                                <select id="propertySelect">
+                                    <option value="" disabled selected>-- Select Existing Property --</option>
+                                </select>
+                                <input type="text" id="newProperty" placeholder="...or Add New Property Name">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="villa">Villa / Unit No.</label>
+                            <input type="text" id="villa" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="monthlyRent">Monthly Rent</label>
+                            <input type="number" id="monthlyRent" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tenantName">Tenant Name</label>
+                            <input type="text" id="tenantName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email">
+                        </div>
+                        <div class="form-group">
+                            <label for="contactNo">Contact No.</label>
+                            <input type="tel" id="contactNo">
+                        </div>
+                         <div class="form-group">
+                            <label for="startDate">Start Date</label>
+                            <input type="date" id="startDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="endDate">End Date</label>
+                            <input type="date" id="endDate" required>
+                        </div>
+                        <div class="form-group-full">
+                            <label for="notes">Notes</label>
+                            <textarea id="notes" placeholder="Any additional notes..."></textarea>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="submit" id="submitBtn">Add Villa Record</button>
+                            <button type="button" id="clearFormBtn">Clear</button>
+                            <button type="button" id="cancelBtn" class="hidden">Cancel</button>
+                        </div>
+                    </form>
+                </fieldset>
+            </div>
+
+            <div class="table-container">
+                <h2>Recent Entries</h2>
+                <table id="tenantTable">
+                    <thead>
+                        <tr>
+                            <th colspan="9">PROPERTY</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tenantList">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="searchView" class="hidden">
+         <header>
+            <span id="openBtn3" class="open-btn">&#9776;</span>
+            <h1>Search Records</h1>
+        </header>
+        <div class="container">
+            <form id="searchForm">
+                <input type="text" id="searchInput" placeholder="Search by Tenant, Villa, Notes, etc...">
+                <button type="submit">Search</button>
+                <button type="button" id="clearSearchBtn">Clear</button>
+            </form>
+            <div class="table-container">
+                <table id="searchResultTable">
+                    <thead>
+                        <tr>
+                           <th colspan="9">SEARCH RESULTS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="searchResultList">
+                         </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    
+    <script src="app.js"></script>
+</body>
+</html>
