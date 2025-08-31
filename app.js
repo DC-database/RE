@@ -19,6 +19,7 @@ const auth = firebase.auth();
 let allTenantsData = {};
 let rentChart = null;
 const existingProperties = new Set();
+const searchSuggestions = new Set(); // To hold autocomplete suggestions
 
 // --- DOM ELEMENTS ---
 const splashScreen = document.getElementById('splashScreen');
@@ -79,7 +80,7 @@ function showView(viewName) {
         case 'dataEntry':
             dataEntryView.classList.remove('hidden');
             navLinks.dataEntry.forEach(link => link.classList.add('active'));
-            tenantList.innerHTML = ''; // Clear recent entries when switching to this view
+            tenantList.innerHTML = '';
             break;
         case 'search':
             searchView.classList.remove('hidden');
@@ -143,6 +144,7 @@ function readTenants() {
             }
         }
         populatePropertyDropdown();
+        populateSearchSuggestions(); // Populate autocomplete suggestions
         if (!searchView.classList.contains('hidden')) {
             renderTable(allTenantsData, searchResultList);
         }
@@ -216,7 +218,6 @@ function renderTable(data, tableBodyElement, isExpandedByDefault = false) {
         tableBodyElement.appendChild(groupRow);
 
         const subHeaderRow = document.createElement('tr');
-        // MODIFIED: Added 'tenant-row' class to hide sub-header by default
         subHeaderRow.className = `sub-header tenant-row ${propertyClass}`;
         subHeaderRow.innerHTML = `<th>Villa/Unit</th><th>Tenant</th><th>Email</th><th>Contact</th><th>Start Date</th><th>End Date</th><th>Monthly Rent</th><th>Notes</th><th class="actions-col">Actions</th>`;
         tableBodyElement.appendChild(subHeaderRow);
@@ -246,7 +247,6 @@ function renderTable(data, tableBodyElement, isExpandedByDefault = false) {
         }
 
         const totalRow = document.createElement('tr');
-        // MODIFIED: Added 'tenant-row' class to hide total-row by default
         totalRow.className = `total-row tenant-row ${propertyClass}`;
         totalRow.innerHTML = `<td colspan="5"></td><td style="font-weight: bold; text-align: right;">Property Total:</td><td style="font-weight: bold;">${formatFinancial(propertyTotal, 'QAR', false)}</td><td colspan="2"></td>`;
         tableBodyElement.appendChild(totalRow);
@@ -376,7 +376,38 @@ function resetForm() {
     newPropertyInput.value = '';
 }
 
-// --- SEARCH FUNCTIONALITY ---
+// --- SEARCH FUNCTIONALITY & AUTOCOMPLETE ---
+function populateSearchSuggestions() {
+    searchSuggestions.clear();
+    if (!allTenantsData) return;
+
+    for (const propertyName in allTenantsData) {
+        if (propertyName) searchSuggestions.add(propertyName);
+        const tenants = allTenantsData[propertyName];
+        for (const tenantId in tenants) {
+            const tenant = tenants[tenantId];
+            if (tenant.tenantName) searchSuggestions.add(tenant.tenantName);
+            if (tenant.villa) searchSuggestions.add(tenant.villa);
+            if (tenant.email) searchSuggestions.add(tenant.email);
+        }
+    }
+
+    const datalist = document.getElementById('searchSuggestions');
+    datalist.innerHTML = '';
+    searchSuggestions.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item;
+        datalist.appendChild(option);
+    });
+}
+
+searchInput.addEventListener('input', (e) => {
+    const value = e.target.value;
+    if ([...searchSuggestions].includes(value)) {
+        searchForm.dispatchEvent(new Event('submit'));
+    }
+});
+
 searchForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const searchTerm = searchInput.value.trim().toLowerCase();
@@ -387,12 +418,24 @@ searchForm.addEventListener('submit', (e) => {
     const filteredData = {};
     for (const propertyName in allTenantsData) {
         const tenants = allTenantsData[propertyName];
+
+        if (propertyName.toLowerCase().includes(searchTerm)) {
+            filteredData[propertyName] = tenants;
+            continue;
+        }
+
+        const matchingTenants = {};
+        let hasMatch = false;
         for (const tenantId in tenants) {
             const tenant = tenants[tenantId];
             if (Object.values(tenant).some(val => String(val).toLowerCase().includes(searchTerm))) {
-                if (!filteredData[propertyName]) filteredData[propertyName] = {};
-                filteredData[propertyName][tenantId] = tenant;
+                matchingTenants[tenantId] = tenant;
+                hasMatch = true;
             }
+        }
+
+        if (hasMatch) {
+            filteredData[propertyName] = matchingTenants;
         }
     }
     renderTable(filteredData, searchResultList, true);
