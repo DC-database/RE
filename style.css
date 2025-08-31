@@ -203,14 +203,13 @@ h1, h2, h3 { text-align: center; color: var(--dark-blue); }
 #searchForm button[type="button"] { background-color: #95a5a6; }
 .print-btn { background-color: var(--success-color) !important; }
 
-/* NEW: Styles for Custom Autocomplete */
 .search-container {
     position: relative;
 }
 .suggestions-container {
     display: none;
     position: absolute;
-    top: 50px; /* Position below the input field */
+    top: 50px;
     left: 0;
     width: 100%;
     max-height: 250px;
@@ -284,7 +283,20 @@ h1, h2, h3 { text-align: center; color: var(--dark-blue); }
     font-size: 14px;
     border: 1px solid #dee2e6;
 }
-.toggle-btn { cursor: pointer; margin-right: 15px; font-family: monospace; font-weight: bold; color: #1976D2; display: inline-block; width: 20px; }
+
+/* MODIFIED: Made toggle button larger */
+.toggle-btn {
+    cursor: pointer;
+    margin-right: 15px;
+    font-family: monospace;
+    font-weight: bold;
+    color: #1976D2;
+    display: inline-block;
+    width: 25px;
+    font-size: 1.5em; /* Increased font size */
+    text-align: center;
+}
+
 .tenant-row { display: none; }
 .tenant-row.visible { display: table-row; }
 
