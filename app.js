@@ -19,7 +19,7 @@ const auth = firebase.auth();
 let allTenantsData = {};
 let rentChart = null;
 const existingProperties = new Set();
-const searchSuggestions = new Set(); // To hold autocomplete suggestions
+const searchSuggestions = new Set();
 
 // --- DOM ELEMENTS ---
 const splashScreen = document.getElementById('splashScreen');
@@ -59,6 +59,7 @@ const clearSearchBtn = document.getElementById('clearSearchBtn');
 const printReportBtn = document.getElementById('printReportBtn');
 const searchResultTable = document.getElementById('searchResultTable');
 const searchResultList = document.getElementById('searchResultList');
+const customSuggestionsContainer = document.getElementById('customSuggestions');
 
 // Dashboard Elements
 const totalPropertiesCard = document.getElementById('totalProperties');
@@ -144,7 +145,7 @@ function readTenants() {
             }
         }
         populatePropertyDropdown();
-        populateSearchSuggestions(); // Populate autocomplete suggestions
+        populateSearchSuggestions();
         if (!searchView.classList.contains('hidden')) {
             renderTable(allTenantsData, searchResultList);
         }
@@ -152,49 +153,26 @@ function readTenants() {
 }
 
 function updateDashboard(data) {
-    let propCount = 0;
-    let tenantCount = 0;
-    let totalRent = 0;
+    let propCount = 0, tenantCount = 0, totalRent = 0;
     const rentByProperty = {};
-
     for (const propertyName in data) {
         propCount++;
-        const tenants = data[propertyName];
         rentByProperty[propertyName] = 0;
-        for (const tenantId in tenants) {
+        for (const tenantId in data[propertyName]) {
             tenantCount++;
-            const rent = parseFloat(tenants[tenantId].monthlyRent) || 0;
+            const rent = parseFloat(data[propertyName][tenantId].monthlyRent) || 0;
             totalRent += rent;
             rentByProperty[propertyName] += rent;
         }
     }
-
     totalPropertiesCard.textContent = propCount;
     totalTenantsCard.textContent = tenantCount;
     totalMonthlyRentCard.textContent = formatFinancial(totalRent, 'QAR', false);
-
-    const propertyLabels = Object.keys(rentByProperty);
-    const rentData = Object.values(rentByProperty);
-
     if (rentChart) rentChart.destroy();
-
     rentChart = new Chart(chartCanvas, {
         type: 'bar',
-        data: {
-            labels: propertyLabels,
-            datasets: [{ label: 'Total Monthly Rent', data: rentData, backgroundColor: ['#3498db', '#2ecc71', '#e74c3c', '#f1c40f', '#9b59b6', '#34495e'], borderColor: '#fff', borderWidth: 2, borderRadius: 5 }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true, ticks: { callback: value => 'QAR ' + value.toLocaleString() }, grid: { color: '#e9ecef' } },
-                x: { grid: { display: false } }
-            },
-            plugins: {
-                legend: { display: false },
-                tooltip: { backgroundColor: '#2c3e50', callbacks: { label: context => `Total Rent: ${formatFinancial(context.raw, 'QAR', false)}` } }
-            }
-        }
+        data: { labels: Object.keys(rentByProperty), datasets: [{ label: 'Total Monthly Rent', data: Object.values(rentByProperty), backgroundColor: ['#3498db', '#2ecc71', '#e74c3c', '#f1c40f', '#9b59b6', '#34495e'], borderColor: '#fff', borderWidth: 2, borderRadius: 5 }] },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: value => 'QAR ' + value.toLocaleString() }, grid: { color: '#e9ecef' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#2c3e50', callbacks: { label: context => `Total Rent: ${formatFinancial(context.raw, 'QAR', false)}` } } } }
     });
 }
 
@@ -203,56 +181,29 @@ function renderTable(data, tableBodyElement, isExpandedByDefault = false) {
     tableBodyElement.innerHTML = '';
     if (!data || Object.keys(data).length === 0) {
         if (tableBodyElement.id === 'tenantList') return;
-        const row = document.createElement('tr');
-        row.innerHTML = `<td colspan="9" style="text-align:center;">No records found.</td>`;
-        tableBodyElement.appendChild(row);
+        tableBodyElement.innerHTML = `<tr><td colspan="9" style="text-align:center;">No records found.</td></tr>`;
         return;
     }
-
     for (const propertyName in data) {
         const propertyClass = 'group-' + propertyName.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
-
-        const groupRow = document.createElement('tr');
-        groupRow.className = 'property-group-header';
-        groupRow.innerHTML = `<td colspan="9"><span class="toggle-btn" data-target="${propertyClass}">+</span> ${propertyName}</td>`;
-        tableBodyElement.appendChild(groupRow);
-
-        const subHeaderRow = document.createElement('tr');
-        subHeaderRow.className = `sub-header tenant-row ${propertyClass}`;
-        subHeaderRow.innerHTML = `<th>Villa/Unit</th><th>Tenant</th><th>Email</th><th>Contact</th><th>Start Date</th><th>End Date</th><th>Monthly Rent</th><th>Notes</th><th class="actions-col">Actions</th>`;
-        tableBodyElement.appendChild(subHeaderRow);
-
+        let propertyHtml = `<tr class="property-group-header"><td colspan="9"><span class="toggle-btn" data-target="${propertyClass}">+</span> ${propertyName}</td></tr>`;
+        propertyHtml += `<tr class="sub-header tenant-row ${propertyClass}"><th>Villa/Unit</th><th>Tenant</th><th>Email</th><th>Contact</th><th>Start Date</th><th>End Date</th><th>Monthly Rent</th><th>Notes</th><th class="actions-col">Actions</th></tr>`;
         let propertyTotal = 0;
         const tenants = data[propertyName];
         for (const tenantId in tenants) {
             const tenant = tenants[tenantId];
-            const row = document.createElement('tr');
-            row.className = `tenant-row ${propertyClass}`;
-            row.innerHTML = `
-                <td>${escapeHtml(tenant.villa)}</td>
-                <td>${escapeHtml(tenant.tenantName)}</td>
-                <td>${escapeHtml(tenant.email)}</td>
-                <td>${formatContact(tenant.contactNo)}</td>
-                <td>${formatDate(tenant.startDate)}</td>
-                <td>${formatDate(tenant.endDate)}</td>
-                <td>${formatFinancial(tenant.monthlyRent, 'QAR')}</td>
-                <td>${escapeHtml(tenant.notes)}</td>
-                <td class="actions-cell">
-                    <button class="action-btn edit-btn" data-id="${tenantId}" data-property="${propertyName}">Edit</button>
-                    <button class="action-btn delete-btn" data-id="${tenantId}" data-property="${propertyName}">Delete</button>
-                </td>
-            `;
-            tableBodyElement.appendChild(row);
+            propertyHtml += `<tr class="tenant-row ${propertyClass}">
+                <td>${escapeHtml(tenant.villa)}</td><td>${escapeHtml(tenant.tenantName)}</td><td>${escapeHtml(tenant.email)}</td>
+                <td>${formatContact(tenant.contactNo)}</td><td>${formatDate(tenant.startDate)}</td><td>${formatDate(tenant.endDate)}</td>
+                <td>${formatFinancial(tenant.monthlyRent, 'QAR')}</td><td>${escapeHtml(tenant.notes)}</td>
+                <td class="actions-cell"><button class="action-btn edit-btn" data-id="${tenantId}" data-property="${propertyName}">Edit</button><button class="action-btn delete-btn" data-id="${tenantId}" data-property="${propertyName}">Delete</button></td>
+            </tr>`;
             propertyTotal += parseFloat(tenant.monthlyRent) || 0;
         }
-
-        const totalRow = document.createElement('tr');
-        totalRow.className = `total-row tenant-row ${propertyClass}`;
-        totalRow.innerHTML = `<td colspan="5"></td><td style="font-weight: bold; text-align: right;">Property Total:</td><td style="font-weight: bold;">${formatFinancial(propertyTotal, 'QAR', false)}</td><td colspan="2"></td>`;
-        tableBodyElement.appendChild(totalRow);
+        propertyHtml += `<tr class="total-row tenant-row ${propertyClass}"><td colspan="5"></td><td style="font-weight: bold; text-align: right;">Property Total:</td><td style="font-weight: bold;">${formatFinancial(propertyTotal, 'QAR', false)}</td><td colspan="2"></td></tr>`;
+        tableBodyElement.innerHTML += propertyHtml;
     }
     attachTableEventListeners(tableBodyElement);
-
     if (isExpandedByDefault) {
         tableBodyElement.querySelectorAll('.toggle-btn').forEach(btn => btn.textContent = '-');
         tableBodyElement.querySelectorAll('.sub-header, .tenant-row, .total-row').forEach(row => row.style.display = 'table-row');
@@ -260,43 +211,34 @@ function renderTable(data, tableBodyElement, isExpandedByDefault = false) {
 }
 
 function attachTableEventListeners(tableBodyElement) {
-    tableBodyElement.querySelectorAll('.toggle-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const targetClass = this.getAttribute('data-target');
-            const isVisible = this.textContent === '-';
-            this.textContent = isVisible ? '+' : '-';
-            tableBodyElement.querySelectorAll(`.${targetClass}`).forEach(row => {
+    tableBodyElement.addEventListener('click', function(e) {
+        const target = e.target;
+        if (target.matches('.toggle-btn')) {
+            const targetClass = target.dataset.target;
+            const isVisible = target.textContent === '-';
+            target.textContent = isVisible ? '+' : '-';
+            this.querySelectorAll(`.${targetClass}`).forEach(row => {
                 if (row.matches('.tenant-row, .total-row, .sub-header')) {
                     row.style.display = isVisible ? 'none' : 'table-row';
                 }
             });
-        });
-    });
-
-    tableBodyElement.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const tenantId = this.getAttribute('data-id');
-            const propertyName = this.getAttribute('data-property');
+        } else if (target.matches('.edit-btn')) {
+            const tenantId = target.dataset.id;
+            const propertyName = target.dataset.property;
             const tenantData = allTenantsData[propertyName][tenantId];
             populateFormForEdit(tenantId, propertyName, tenantData);
-        });
-    });
-
-    tableBodyElement.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        } else if (target.matches('.delete-btn')) {
             if (confirm('Are you sure you want to delete this tenant record?')) {
-                const tenantId = this.getAttribute('data-id');
-                const propertyName = this.getAttribute('data-property');
+                const tenantId = target.dataset.id;
+                const propertyName = target.dataset.property;
                 database.ref(`${propertyName}/${tenantId}`).remove()
                     .then(() => {
                         alert('Successfully deleted!');
-                        if (tableBodyElement.id === 'tenantList') {
-                            tableBodyElement.innerHTML = '';
-                        }
+                        if (tableBodyElement.id === 'tenantList') tableBodyElement.innerHTML = '';
                     })
                     .catch(error => alert(`Error deleting record: ${error.message}`));
             }
-        });
+        }
     });
 }
 
@@ -315,13 +257,14 @@ function populateFormForEdit(tenantId, propertyName, tenantData) {
     tenantIdField.value = tenantId;
     propertySelect.value = propertyName;
     newPropertyInput.value = '';
+    Object.keys(tenantData).forEach(key => {
+        const el = document.getElementById(key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`));
+        if (el) el.value = tenantData[key] || '';
+    });
     document.getElementById('villa').value = tenantData.villa || '';
     document.getElementById('monthlyRent').value = tenantData.monthlyRent || '';
     document.getElementById('tenantName').value = tenantData.tenantName || '';
-    document.getElementById('email').value = tenantData.email || '';
     document.getElementById('contactNo').value = tenantData.contactNo || '';
-    document.getElementById('startDate').value = tenantData.startDate || '';
-    document.getElementById('endDate').value = tenantData.endDate || '';
     document.getElementById('notes').value = tenantData.notes || '';
     submitBtn.textContent = 'Update Villa Record';
     cancelBtn.classList.remove('hidden');
@@ -337,20 +280,14 @@ tenantForm.addEventListener('submit', (e) => {
         return;
     }
     const formData = {
-        villa: document.getElementById('villa').value,
-        monthlyRent: parseFloat(document.getElementById('monthlyRent').value),
-        tenantName: document.getElementById('tenantName').value,
-        email: document.getElementById('email').value,
-        contactNo: document.getElementById('contactNo').value,
-        startDate: document.getElementById('startDate').value,
-        endDate: document.getElementById('endDate').value,
-        notes: document.getElementById('notes').value
+        villa: document.getElementById('villa').value, monthlyRent: parseFloat(document.getElementById('monthlyRent').value),
+        tenantName: document.getElementById('tenantName').value, email: document.getElementById('email').value,
+        contactNo: document.getElementById('contactNo').value, startDate: document.getElementById('startDate').value,
+        endDate: document.getElementById('endDate').value, notes: document.getElementById('notes').value
     };
-
     const existingTenantId = tenantIdField.value;
     const newTenantId = existingTenantId || generateId();
     const path = `${finalPropertyName}/${newTenantId}`;
-
     database.ref(path).set(formData)
         .then(() => {
             alert(existingTenantId ? 'Record updated successfully!' : 'New record added successfully!');
@@ -361,10 +298,7 @@ tenantForm.addEventListener('submit', (e) => {
         .catch(error => alert(`Error saving data: ${error.message}`));
 });
 
-clearFormBtn.addEventListener('click', () => {
-    resetForm();
-    tenantList.innerHTML = '';
-});
+clearFormBtn.addEventListener('click', () => { resetForm(); tenantList.innerHTML = ''; });
 cancelBtn.addEventListener('click', resetForm);
 
 function resetForm() {
@@ -380,36 +314,52 @@ function resetForm() {
 function populateSearchSuggestions() {
     searchSuggestions.clear();
     if (!allTenantsData) return;
-
     for (const propertyName in allTenantsData) {
         if (propertyName) searchSuggestions.add(propertyName);
-        const tenants = allTenantsData[propertyName];
-        for (const tenantId in tenants) {
-            const tenant = tenants[tenantId];
+        for (const tenantId in allTenantsData[propertyName]) {
+            const tenant = allTenantsData[propertyName][tenantId];
             if (tenant.tenantName) searchSuggestions.add(tenant.tenantName);
             if (tenant.villa) searchSuggestions.add(tenant.villa);
             if (tenant.email) searchSuggestions.add(tenant.email);
         }
     }
-
-    const datalist = document.getElementById('searchSuggestions');
-    datalist.innerHTML = '';
-    searchSuggestions.forEach(item => {
-        const option = document.createElement('option');
-        option.value = item;
-        datalist.appendChild(option);
-    });
 }
 
-searchInput.addEventListener('input', (e) => {
-    const value = e.target.value;
-    if ([...searchSuggestions].includes(value)) {
-        searchForm.dispatchEvent(new Event('submit'));
+searchInput.addEventListener('input', () => {
+    const query = searchInput.value.trim().toLowerCase();
+    customSuggestionsContainer.innerHTML = '';
+    if (query.length === 0) {
+        customSuggestionsContainer.style.display = 'none';
+        return;
+    }
+    const matchingSuggestions = [...searchSuggestions].filter(item => item.toLowerCase().includes(query));
+    if (matchingSuggestions.length > 0) {
+        matchingSuggestions.slice(0, 10).forEach(item => { // Limit to 10 suggestions
+            const div = document.createElement('div');
+            div.className = 'suggestion-item';
+            div.textContent = item;
+            div.addEventListener('click', () => {
+                searchInput.value = item;
+                customSuggestionsContainer.style.display = 'none';
+                searchForm.dispatchEvent(new Event('submit'));
+            });
+            customSuggestionsContainer.appendChild(div);
+        });
+        customSuggestionsContainer.style.display = 'block';
+    } else {
+        customSuggestionsContainer.style.display = 'none';
+    }
+});
+
+document.addEventListener('click', (e) => {
+    if (e.target !== searchInput) {
+        customSuggestionsContainer.style.display = 'none';
     }
 });
 
 searchForm.addEventListener('submit', (e) => {
     e.preventDefault();
+    customSuggestionsContainer.style.display = 'none';
     const searchTerm = searchInput.value.trim().toLowerCase();
     if (!searchTerm) {
         renderTable(allTenantsData, searchResultList);
@@ -418,12 +368,10 @@ searchForm.addEventListener('submit', (e) => {
     const filteredData = {};
     for (const propertyName in allTenantsData) {
         const tenants = allTenantsData[propertyName];
-
         if (propertyName.toLowerCase().includes(searchTerm)) {
             filteredData[propertyName] = tenants;
             continue;
         }
-
         const matchingTenants = {};
         let hasMatch = false;
         for (const tenantId in tenants) {
@@ -433,7 +381,6 @@ searchForm.addEventListener('submit', (e) => {
                 hasMatch = true;
             }
         }
-
         if (hasMatch) {
             filteredData[propertyName] = matchingTenants;
         }
@@ -450,35 +397,10 @@ printReportBtn.addEventListener('click', () => window.print());
 
 // --- UTILITY FUNCTIONS ---
 function generateId() { return 'id-' + new Date().getTime() + '-' + Math.random().toString(36).substr(2, 9); }
-
-function formatDate(dateString) {
-    if (!dateString) return '-';
-    try {
-        const options = { year: 'numeric', month: 'short', day: '2-digit' };
-        return new Date(dateString).toLocaleDateString('en-US', options);
-    } catch (e) { return '-' }
-}
-
-function formatContact(contactNo) {
-    if (!contactNo) return '-';
-    const digits = String(contactNo).replace(/\D/g, '');
-    if (digits.length === 8) {
-        return `+974 ${digits.substring(0, 4)}-${digits.substring(4)}`;
-    }
-    return contactNo;
-}
-
-function formatFinancial(amount, currency, usePlaceholder = true) {
-    const num = parseFloat(amount);
-    if (usePlaceholder && isNaN(num)) return '-';
-    return `${currency} ${(num || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-}
-
-function escapeHtml(text) {
-    const str = text ? String(text) : '-';
-    if (str === '-') return str;
-    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-}
+function formatDate(dateString) { if (!dateString) return '-'; try { const options = { year: 'numeric', month: 'short', day: '2-digit' }; return new Date(dateString).toLocaleDateString('en-US', options); } catch (e) { return '-' } }
+function formatContact(contactNo) { if (!contactNo) return '-'; const digits = String(contactNo).replace(/\D/g, ''); if (digits.length === 8) { return `+974 ${digits.substring(0, 4)}-${digits.substring(4)}`; } return contactNo; }
+function formatFinancial(amount, currency, usePlaceholder = true) { const num = parseFloat(amount); if (usePlaceholder && isNaN(num)) return '-'; return `${currency} ${(num || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`; }
+function escapeHtml(text) { const str = text ? String(text) : '-'; if (str === '-') return str; return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
 
 // --- EVENT LISTENERS FOR NAVIGATION ---
 document.getElementById('dashboardLink').addEventListener('click', (e) => { e.preventDefault(); showView('dashboard'); });

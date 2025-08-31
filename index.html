@@ -101,7 +101,7 @@
                 <div class="table-container">
                     <h2>Recent Entries</h2>
                     <table id="tenantTable">
-                        <thead><tr><th colspan="9">PROPERTY ENTERED</th></tr></thead>
+                        <thead><tr><th colspan="9">PROPERTY</th></tr></thead>
                         <tbody id="tenantList"></tbody>
                     </table>
                 </div>
@@ -111,16 +111,18 @@
         <div id="searchView" class="hidden">
              <header><span id="openBtn3" class="open-btn">&#9776;</span><h1>Search Records</h1></header>
             <div class="container">
-                <form id="searchForm">
-                    <input type="text" id="searchInput" placeholder="Search by Tenant, Villa, Notes, etc..." list="searchSuggestions">
-                    <datalist id="searchSuggestions"></datalist>
-                    <button type="submit">Search</button>
-                    <button type="button" id="clearSearchBtn">Clear</button>
-                    <button type="button" id="printReportBtn" class="print-btn">Print Report</button>
-                </form>
+                <div class="search-container">
+                    <form id="searchForm">
+                        <input type="text" id="searchInput" placeholder="Search by Tenant, Villa, Notes, etc..." autocomplete="off">
+                        <button type="submit">Search</button>
+                        <button type="button" id="clearSearchBtn">Clear</button>
+                        <button type="button" id="printReportBtn" class="print-btn">Print Report</button>
+                    </form>
+                    <div id="customSuggestions" class="suggestions-container"></div>
+                </div>
                 <div id="printArea" class="table-container">
                     <table id="searchResultTable">
-                        <thead><tr><th colspan="9">PROPERTY RESULT</th></tr></thead>
+                        <thead><tr><th colspan="9">SEARCH RESULTS</th></tr></thead>
                         <tbody id="searchResultList"></tbody>
                     </table>
                 </div>

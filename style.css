@@ -203,8 +203,34 @@ h1, h2, h3 { text-align: center; color: var(--dark-blue); }
 #searchForm button[type="button"] { background-color: #95a5a6; }
 .print-btn { background-color: var(--success-color) !important; }
 
+/* NEW: Styles for Custom Autocomplete */
+.search-container {
+    position: relative;
+}
+.suggestions-container {
+    display: none;
+    position: absolute;
+    top: 50px; /* Position below the input field */
+    left: 0;
+    width: 100%;
+    max-height: 250px;
+    overflow-y: auto;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 0 0 5px 5px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+.suggestion-item {
+    padding: 12px 15px;
+    cursor: pointer;
+}
+.suggestion-item:hover {
+    background-color: #f1f1f1;
+}
+
 /* --- Table Styling --- */
-.table-container { overflow-x: auto; margin-top: 40px; }
+.table-container { overflow-x: auto; margin-top: 20px; }
 #tenantTable, #searchResultTable {
     width: 100%;
     border-collapse: collapse;
@@ -320,36 +346,26 @@ h1, h2, h3 { text-align: center; color: var(--dark-blue); }
     body {
         padding-bottom: 70px;
     }
-
-    /* REMOVED .open-btn { display: none; } to make the hamburger menu visible */
-
-    /* REMOVED justify-content: center; to align title next to the hamburger menu */
     header {
         /* No longer centered */
     }
-
     .container {
         padding: 15px;
         margin: 10px;
     }
-
     #tenantForm {
         grid-template-columns: 1fr;
     }
-
     .logo-shape {
         width: 100px;
         height: 100px;
     }
-    
     .line-1 {
         font-size: 1.8rem;
     }
-    
     .line-2 {
         font-size: 2.5rem;
     }
-
     .bottom-nav {
         display: flex;
         position: fixed;
@@ -361,7 +377,6 @@ h1, h2, h3 { text-align: center; color: var(--dark-blue); }
         z-index: 1000;
         border-top: 1px solid #eee;
     }
-
     .bottom-nav-link {
         flex: 1;
         display: flex;
@@ -373,16 +388,13 @@ h1, h2, h3 { text-align: center; color: var(--dark-blue); }
         color: var(--medium-grey);
         transition: color 0.3s;
     }
-
     .bottom-nav-link .icon {
         font-size: 24px;
         margin-bottom: 2px;
     }
-
     .bottom-nav-link .label {
         font-size: 12px;
     }
-
     .bottom-nav-link.active {
         color: var(--primary-color);
         font-weight: bold;
