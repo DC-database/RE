@@ -203,43 +203,50 @@ function renderTable(data, tableBodyElement, isExpandedByDefault = false) {
         propertyHtml += `<tr class="total-row tenant-row ${propertyClass}"><td colspan="5"></td><td style="font-weight: bold; text-align: right;">Property Total:</td><td style="font-weight: bold;">${formatFinancial(propertyTotal, 'QAR', false)}</td><td colspan="2"></td></tr>`;
         tableBodyElement.innerHTML += propertyHtml;
     }
-    attachTableEventListeners(tableBodyElement);
     if (isExpandedByDefault) {
         tableBodyElement.querySelectorAll('.toggle-btn').forEach(btn => btn.textContent = '-');
         tableBodyElement.querySelectorAll('.sub-header, .tenant-row, .total-row').forEach(row => row.style.display = 'table-row');
     }
 }
 
-function attachTableEventListeners(tableBodyElement) {
-    tableBodyElement.addEventListener('click', function(e) {
-        const target = e.target;
-        if (target.matches('.toggle-btn')) {
-            const targetClass = target.dataset.target;
-            const isVisible = target.textContent === '-';
-            target.textContent = isVisible ? '+' : '-';
-            this.querySelectorAll(`.${targetClass}`).forEach(row => {
-                if (row.matches('.tenant-row, .total-row, .sub-header')) {
-                    row.style.display = isVisible ? 'none' : 'table-row';
-                }
-            });
-        } else if (target.matches('.edit-btn')) {
+// MODIFIED: Centralized click handling for all tables to fix bug
+function handleTableClick(e) {
+    const target = e.target;
+    const tableBodyElement = this; // 'this' refers to the table body that was clicked
+
+    // Handle toggle button clicks
+    if (target.matches('.toggle-btn')) {
+        const targetClass = target.dataset.target;
+        const isVisible = target.textContent === '-';
+        target.textContent = isVisible ? '+' : '-';
+        tableBodyElement.querySelectorAll(`.${targetClass}`).forEach(row => {
+            if (row.matches('.tenant-row, .total-row, .sub-header')) {
+                row.style.display = isVisible ? 'none' : 'table-row';
+            }
+        });
+    }
+
+    // Handle edit button clicks
+    else if (target.matches('.edit-btn')) {
+        const tenantId = target.dataset.id;
+        const propertyName = target.dataset.property;
+        const tenantData = allTenantsData[propertyName][tenantId];
+        populateFormForEdit(tenantId, propertyName, tenantData);
+    }
+
+    // Handle delete button clicks
+    else if (target.matches('.delete-btn')) {
+        if (confirm('Are you sure you want to delete this tenant record?')) {
             const tenantId = target.dataset.id;
             const propertyName = target.dataset.property;
-            const tenantData = allTenantsData[propertyName][tenantId];
-            populateFormForEdit(tenantId, propertyName, tenantData);
-        } else if (target.matches('.delete-btn')) {
-            if (confirm('Are you sure you want to delete this tenant record?')) {
-                const tenantId = target.dataset.id;
-                const propertyName = target.dataset.property;
-                database.ref(`${propertyName}/${tenantId}`).remove()
-                    .then(() => {
-                        alert('Successfully deleted!');
-                        if (tableBodyElement.id === 'tenantList') tableBodyElement.innerHTML = '';
-                    })
-                    .catch(error => alert(`Error deleting record: ${error.message}`));
-            }
+            database.ref(`${propertyName}/${tenantId}`).remove()
+                .then(() => {
+                    alert('Successfully deleted!');
+                    if (tableBodyElement.id === 'tenantList') tableBodyElement.innerHTML = '';
+                })
+                .catch(error => alert(`Error deleting record: ${error.message}`));
         }
-    });
+    }
 }
 
 // --- FORM HANDLING ---
@@ -257,14 +264,13 @@ function populateFormForEdit(tenantId, propertyName, tenantData) {
     tenantIdField.value = tenantId;
     propertySelect.value = propertyName;
     newPropertyInput.value = '';
-    Object.keys(tenantData).forEach(key => {
-        const el = document.getElementById(key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`));
-        if (el) el.value = tenantData[key] || '';
-    });
     document.getElementById('villa').value = tenantData.villa || '';
     document.getElementById('monthlyRent').value = tenantData.monthlyRent || '';
     document.getElementById('tenantName').value = tenantData.tenantName || '';
+    document.getElementById('email').value = tenantData.email || '';
     document.getElementById('contactNo').value = tenantData.contactNo || '';
+    document.getElementById('startDate').value = tenantData.startDate || '';
+    document.getElementById('endDate').value = tenantData.endDate || '';
     document.getElementById('notes').value = tenantData.notes || '';
     submitBtn.textContent = 'Update Villa Record';
     cancelBtn.classList.remove('hidden');
@@ -334,7 +340,7 @@ searchInput.addEventListener('input', () => {
     }
     const matchingSuggestions = [...searchSuggestions].filter(item => item.toLowerCase().includes(query));
     if (matchingSuggestions.length > 0) {
-        matchingSuggestions.slice(0, 10).forEach(item => { // Limit to 10 suggestions
+        matchingSuggestions.slice(0, 10).forEach(item => {
             const div = document.createElement('div');
             div.className = 'suggestion-item';
             div.textContent = item;
@@ -417,6 +423,10 @@ function initializeApp() {
         readTenants();
         showView('dashboard');
     }, 3000);
+
+    // MODIFIED: Attach a single, persistent event listener to each table body
+    tenantList.addEventListener('click', handleTableClick);
+    searchResultList.addEventListener('click', handleTableClick);
 }
 
 document.addEventListener('DOMContentLoaded', initializeApp);
