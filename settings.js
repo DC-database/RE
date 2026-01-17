@@ -3,6 +3,7 @@
 (function () {
   const S = window.IBAStore;
   const U = window.IBACommon;
+  const A = window.IBAAuth;
   if (!S || !U) return;
 
   const { qs, toast, confirmDialog } = U;
@@ -55,5 +56,51 @@
       if (f) importJSON(f);
       e.target.value = '';
     });
+
+    // --- Admin-only: create user accounts ---
+    try {
+      const user = A && A.getUser ? A.getUser() : null;
+      if (user && A && typeof A.isAdmin === 'function' && A.isAdmin()) {
+        const adminSection = qs('#adminSection');
+        if (adminSection) adminSection.style.display = 'block';
+
+        const { openModal, closeModal, wireModalOverlayClose } = U;
+        wireModalOverlayClose('#userModal');
+
+        const open = () => {
+          qs('#newUserEmail').value = '';
+          qs('#newUserPassword').value = '';
+          qs('#newUserConfirm').value = '';
+          openModal('#userModal');
+        };
+
+        const close = () => closeModal('#userModal');
+
+        qs('#btnOpenUserModal').addEventListener('click', open);
+        qs('#btnCloseUserModal').addEventListener('click', close);
+        qs('#btnCancelUserModal').addEventListener('click', close);
+
+        qs('#btnCreateUser').addEventListener('click', async () => {
+          const email = (qs('#newUserEmail').value || '').trim();
+          const pass = qs('#newUserPassword').value || '';
+          const conf = qs('#newUserConfirm').value || '';
+
+          if (!email) return toast('Email is required', 'error');
+          if (!pass || pass.length < 6) return toast('Password must be at least 6 characters', 'error');
+          if (pass !== conf) return toast('Passwords do not match', 'error');
+
+          try {
+            await A.adminCreateUser(email, pass);
+            toast('User created. They can login now.', 'success');
+            close();
+          } catch (e) {
+            toast(e?.message || 'Failed to create user', 'error');
+            console.error(e);
+          }
+        });
+      }
+    } catch (e) {
+      console.warn('Admin section init failed:', e);
+    }
   });
 })();

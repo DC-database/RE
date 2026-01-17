@@ -17,6 +17,10 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
 import { getDatabase, ref, get, set } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js';
 
+// Hard-coded admin UID for demo (replace with custom claims in production).
+// You provided this UID:
+const ADMIN_UID = '030uyDPSwxTftK7JgY5eedclzgs1';
+
 // Your Firebase config (provided by you)
 const firebaseConfig = {
   apiKey: 'AIzaSyBkeywuk5EirEyZENNaRW-mXbbCfvK-ZKg',
@@ -35,6 +39,10 @@ const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence).catch(() => {});
 
 const db = getDatabase(app);
+
+// Secondary app instance used ONLY for creating users without logging out the admin.
+const secondaryApp = initializeApp(firebaseConfig, 'secondary');
+const secondaryAuth = getAuth(secondaryApp);
 
 function isLoginPage() {
   const page = (location.pathname.split('/').pop() || '').toLowerCase();
@@ -63,8 +71,19 @@ async function login(email, password) {
   return signInWithEmailAndPassword(auth, email, password);
 }
 
-async function register(email, password) {
-  return createUserWithEmailAndPassword(auth, email, password);
+function isAdmin(user) {
+  return Boolean(user && user.uid === ADMIN_UID);
+}
+
+// Create a new user account (admin only). Uses a SECONDARY auth instance so
+// the primary session remains logged in as admin.
+async function adminCreateUser(email, password) {
+  const u = auth.currentUser;
+  if (!isAdmin(u)) throw new Error('Admin only');
+  const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+  // Sign out the secondary auth so it doesn't persist a second session.
+  try { await signOut(secondaryAuth); } catch {}
+  return cred;
 }
 
 async function logout() {
@@ -102,7 +121,10 @@ window.IBAAuth = {
   waitForUserOnce,
   requireAuth,
   login,
-  register,
   logout,
+  isAdmin: () => isAdmin(auth.currentUser),
+  adminCreateUser,
   getUser: () => auth.currentUser,
 };
+
+window.IBAAdmin = { ADMIN_UID };

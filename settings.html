@@ -35,7 +35,7 @@
         <div class="top-bar">
             <div>
                 <h2 class="page-header">Settings</h2>
-                <p class="sub-header">Demo utilities (LocalStorage)</p>
+                <p class="sub-header">Demo utilities (Firebase)</p>
             </div>
             <div class="search-box" style="width:320px;">
                 <i class="fas fa-search search-icon"></i>
@@ -46,7 +46,7 @@
         <div class="data-table-container">
             <h3 class="section-title" style="margin-bottom:12px;">Demo Data</h3>
             <p class="muted" style="margin-bottom:16px;">
-                All data is saved locally in your browser (LocalStorage). This is perfect for demos. Later, you can move the same data model to Firebase.
+                All data is saved in <strong>Firebase Realtime Database</strong> under your user account. This is perfect for web demos (each user has isolated data).
             </p>
 
             <div class="row-actions" style="flex-wrap:wrap; gap:12px;">
@@ -64,6 +64,18 @@
 
             <hr style="border:0; border-top:1px solid #e2e8f0; margin:22px 0;">
 
+            <div id="adminSection" style="display:none;">
+                <h3 class="section-title" style="margin-bottom:12px;">Admin: User Accounts</h3>
+                <p class="muted" style="margin-bottom:16px;">
+                    Only the admin can create new users. Ask the admin for an account to access the demo online.
+                </p>
+                <div class="row-actions" style="flex-wrap:wrap; gap:12px;">
+                    <button class="btn-add" id="btnOpenUserModal"><i class="fas fa-user-plus"></i> Create User</button>
+                </div>
+
+                <hr style="border:0; border-top:1px solid #e2e8f0; margin:22px 0;">
+            </div>
+
             <h3 class="section-title" style="margin-bottom:12px;">Quick Demo Flow</h3>
             <ol style="padding-left:20px; color:var(--primary-text); line-height:1.7;">
                 <li>Create a <strong>Property</strong> (Flats &amp; Villas)</li>
@@ -72,6 +84,39 @@
                 <li>Add a <strong>Payment</strong></li>
                 <li>Open <strong>Maintenance</strong> and create a job with materials &amp; totals</li>
             </ol>
+        </div>
+    </div>
+
+    <!-- Admin create-user modal -->
+    <div id="userModal" class="modal-overlay" aria-hidden="true" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Create User Account</h3>
+                <button class="modal-close" type="button" id="btnCloseUserModal" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="input-group" style="grid-column:1 / -1;">
+                        <label>Email</label>
+                        <input id="newUserEmail" type="email" placeholder="user@example.com" autocomplete="off" />
+                    </div>
+                    <div class="input-group">
+                        <label>Temp Password</label>
+                        <input id="newUserPassword" type="password" placeholder="Minimum 6 characters" autocomplete="off" />
+                    </div>
+                    <div class="input-group">
+                        <label>Confirm Password</label>
+                        <input id="newUserConfirm" type="password" placeholder="Repeat password" autocomplete="off" />
+                    </div>
+                </div>
+                <p class="muted" style="margin-top:10px;">
+                    The user can login from the login screen using this email/password.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" type="button" id="btnCancelUserModal">Cancel</button>
+                <button class="btn-add" type="button" id="btnCreateUser"><i class="fas fa-check"></i> Create</button>
+            </div>
         </div>
     </div>
 
