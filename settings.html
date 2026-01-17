@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - IBA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="brand"><i class="fas fa-city"></i> IBA System</div>
+
+        <div class="menu-title">Overview</div>
+        <a href="index.html" class="menu-item"><i class="fas fa-chart-line"></i> Dashboard</a>
+
+        <div class="menu-title">Properties</div>
+        <a href="properties.html" class="menu-item"><i class="fas fa-building"></i> Flats &amp; Villas</a>
+        <a href="tenants.html" class="menu-item"><i class="fas fa-users"></i> Tenants</a>
+        <a href="contracts.html" class="menu-item"><i class="fas fa-file-contract"></i> Contracts</a>
+
+        <div class="menu-title">Operations</div>
+        <a href="maintenance.html" class="menu-item"><i class="fas fa-tools"></i> Maintenance</a>
+        <a href="daily-jobs.html" class="menu-item"><i class="fas fa-calendar-check"></i> Daily Jobs</a>
+        <a href="payments.html" class="menu-item"><i class="fas fa-wallet"></i> Payments</a>
+
+        <div class="menu-title">Reports</div>
+        <a href="analytics.html" class="menu-item"><i class="fas fa-chart-pie"></i> Analytics</a>
+        <a href="settings.html" class="menu-item"><i class="fas fa-gear"></i> Settings</a>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <div>
+                <h2 class="page-header">Settings</h2>
+                <p class="sub-header">Demo utilities (LocalStorage)</p>
+            </div>
+            <div class="search-box" style="width:320px;">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="globalSearch" placeholder="Search...">
+            </div>
+        </div>
+
+        <div class="data-table-container">
+            <h3 class="section-title" style="margin-bottom:12px;">Demo Data</h3>
+            <p class="muted" style="margin-bottom:16px;">
+                All data is saved locally in your browser (LocalStorage). This is perfect for demos. Later, you can move the same data model to Firebase.
+            </p>
+
+            <div class="row-actions" style="flex-wrap:wrap; gap:12px;">
+                <button class="btn-add" id="btnResetDemo"><i class="fas fa-rotate"></i> Reset Demo Data</button>
+                <button class="btn-secondary" id="btnExport"><i class="fas fa-download"></i> Export JSON</button>
+                <label class="btn-secondary" style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+                    <i class="fas fa-upload"></i> Import JSON
+                    <input id="importFile" type="file" accept="application/json" style="display:none;">
+                </label>
+            </div>
+
+            <div style="margin-top:18px;" class="muted">
+                <strong>Tip:</strong> Use Export/Import to move your demo data between laptops or to seed Firebase later.
+            </div>
+
+            <hr style="border:0; border-top:1px solid #e2e8f0; margin:22px 0;">
+
+            <h3 class="section-title" style="margin-bottom:12px;">Quick Demo Flow</h3>
+            <ol style="padding-left:20px; color:var(--primary-text); line-height:1.7;">
+                <li>Create a <strong>Property</strong> (Flats &amp; Villas)</li>
+                <li>Create a <strong>Tenant</strong></li>
+                <li>Create a <strong>Contract</strong> linking them</li>
+                <li>Add a <strong>Payment</strong></li>
+                <li>Open <strong>Maintenance</strong> and create a job with materials &amp; totals</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="store.js"></script>
+    <script src="common.js"></script>
+    <script src="settings.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

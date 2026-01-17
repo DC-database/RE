@@ -1,0 +1,212 @@
+/* --- maintenance.css (Premium Update) --- */
+
+/* 1. THE MODAL CONTAINER */
+.modal-content {
+    background: white;
+    width: 900px;
+    border-radius: 12px; /* Smooth corners */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* Deep shadow */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+/* 2. THE HEADER (Like your screenshot, but sharper) */
+.modal-header {
+    background-color: #0f172a; /* Deep Navy */
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #1e293b;
+}
+
+.modal-header h3 {
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* The Close "X" Button */
+.close-modal-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+}
+.close-modal-btn:hover { background: rgba(255, 255, 255, 0.2); }
+
+/* 3. THE BODY */
+.modal-body {
+    padding: 30px 35px; /* Spacious padding */
+    background-color: #ffffff;
+    overflow-y: auto;
+}
+
+/* 4. THE FIELDS (The "Better" Part) */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Space between label and input */
+}
+
+/* The Label: Technical & Clean */
+.input-group label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase; /* Makes it look like a system form */
+    letter-spacing: 0.5px;
+}
+
+/* The Input Box: Taller & Cleaner */
+.input-group input,
+.input-group select,
+.textarea-group textarea {
+    height: 48px; /* TALLER fields = Premium feel */
+    padding: 0 15px; /* Side padding */
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    color: #0f172a;
+    background-color: #ffffff;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.textarea-group textarea {
+    padding: 15px; /* Textareas need top/bottom padding */
+    height: auto;
+    min-height: 100px;
+}
+
+/* Focus State: The "Pusha Pink" Glow */
+.input-group input:focus,
+.input-group select:focus,
+.textarea-group textarea:focus {
+    border-color: var(--accent-pink);
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(255, 158, 170, 0.15); /* Soft pink halo */
+}
+
+/* Disabled/Read-Only Fields (Like 'Job No') */
+/* We make these look like "Ghost Blue" blocks, not dirty gray */
+.input-group input:disabled,
+.input-group select:disabled {
+    background-color: #f1f5f9; /* Very light blue-gray */
+    border-color: #e2e8f0;
+    color: #64748b;
+    font-weight: 600;
+}
+
+/* 5. SECTIONS (Like 'Step 1' in your screenshot) */
+.form-section-header {
+    margin-top: 25px;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e2e8f0;
+    
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent-pink); /* Using your accent color */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 6. THE FOOTER */
+.modal-footer {
+    padding: 20px 35px;
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end; /* Buttons to the right */
+    gap: 15px;
+}
+
+/* Materials table */
+.material-table-container {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.material-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.material-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.material-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.material-table td input {
+    height: 40px;
+}
+
+.material-table tr:last-child td { border-bottom: none; }
+
+.material-del-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Ensure overlay flex for this page */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 20px;
+}
+
+@media (max-width: 900px) {
+    .modal-content { width: 100%; }
+}
+/* Mobile: full-screen modal and easier horizontal scrolling for materials */
+@media (max-width: 600px) {
+    .modal-overlay { padding: 0; }
+
+    .modal-content {
+        width: 100% !important;
+        height: 100vh;
+        max-height: none;
+        border-radius: 0;
+    }
+
+    .modal-header { padding: 16px 18px; }
+    .modal-body { padding: 18px; }
+    .modal-footer { padding: 16px 18px; }
+
+    .material-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .material-table { min-width: 640px; }
+}

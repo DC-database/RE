@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - IBA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="brand"><i class="fas fa-city"></i> IBA System</div>
+
+        <div class="menu-title">Overview</div>
+        <a href="index.html" class="menu-item"><i class="fas fa-chart-line"></i> Dashboard</a>
+
+        <div class="menu-title">Properties</div>
+        <a href="properties.html" class="menu-item"><i class="fas fa-building"></i> Flats &amp; Villas</a>
+        <a href="tenants.html" class="menu-item"><i class="fas fa-users"></i> Tenants</a>
+        <a href="contracts.html" class="menu-item"><i class="fas fa-file-contract"></i> Contracts</a>
+
+        <div class="menu-title">Operations</div>
+        <a href="maintenance.html" class="menu-item"><i class="fas fa-tools"></i> Maintenance</a>
+        <a href="daily-jobs.html" class="menu-item"><i class="fas fa-calendar-check"></i> Daily Jobs</a>
+        <a href="payments.html" class="menu-item"><i class="fas fa-wallet"></i> Payments</a>
+
+        <div class="menu-title">Reports</div>
+        <a href="analytics.html" class="menu-item"><i class="fas fa-chart-pie"></i> Analytics</a>
+        <a href="settings.html" class="menu-item"><i class="fas fa-gear"></i> Settings</a>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <div>
+                <h2 class="page-header">Analytics</h2>
+                <p class="sub-header">Quick insights from demo data</p>
+            </div>
+            <div class="search-box" style="width:320px;">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="globalSearch" placeholder="Search...">
+            </div>
+        </div>
+
+        <div class="stats-row" id="analyticsStats"></div>
+
+        <div class="section-header" style="margin-top:10px;">
+            <h3 class="section-title">Upcoming Contract Expiry (Next 60 Days)</h3>
+        </div>
+        <div class="data-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Contract</th>
+                        <th>Property</th>
+                        <th>Tenant</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="expiryBody"></tbody>
+            </table>
+        </div>
+
+        <div class="section-header" style="margin-top:24px;">
+            <h3 class="section-title">Top Units by Monthly Rent</h3>
+        </div>
+        <div class="data-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Type</th>
+                        <th>Location</th>
+                        <th>Monthly Rent</th>
+                    </tr>
+                </thead>
+                <tbody id="topRentBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="store.js"></script>
+    <script src="common.js"></script>
+    <script src="analytics.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

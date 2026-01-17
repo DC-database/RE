@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Jobs - IBA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="brand"><i class="fas fa-city"></i> IBA System</div>
+
+        <div class="menu-title">Overview</div>
+        <a href="index.html" class="menu-item"><i class="fas fa-chart-line"></i> Dashboard</a>
+
+        <div class="menu-title">Properties</div>
+        <a href="properties.html" class="menu-item"><i class="fas fa-building"></i> Flats &amp; Villas</a>
+        <a href="tenants.html" class="menu-item"><i class="fas fa-users"></i> Tenants</a>
+        <a href="contracts.html" class="menu-item"><i class="fas fa-file-contract"></i> Contracts</a>
+
+        <div class="menu-title">Operations</div>
+        <a href="maintenance.html" class="menu-item"><i class="fas fa-tools"></i> Maintenance</a>
+        <a href="daily-jobs.html" class="menu-item"><i class="fas fa-calendar-check"></i> Daily Jobs</a>
+        <a href="payments.html" class="menu-item"><i class="fas fa-wallet"></i> Payments</a>
+
+        <div class="menu-title">Reports</div>
+        <a href="analytics.html" class="menu-item"><i class="fas fa-chart-pie"></i> Analytics</a>
+        <a href="settings.html" class="menu-item"><i class="fas fa-gear"></i> Settings</a>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <div>
+                <h2 class="page-header">Daily Jobs</h2>
+                <p class="sub-header">Track daily tasks and assignments</p>
+            </div>
+            <div class="row-actions">
+                <div class="search-box" style="width:320px;">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="globalSearch" placeholder="Search...">
+                </div>
+                <button class="btn-add" id="btnAddDaily"><i class="fas fa-plus"></i> New Job</button>
+            </div>
+        </div>
+
+        <div class="data-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Job</th>
+                        <th>Assigned To</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="dailyBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Daily Job Modal -->
+    <div id="dailyModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content" style="width:min(820px,100%);">
+            <div class="modal-header">
+                <h3><i class="fas fa-calendar-check"></i> Daily Job</h3>
+                <button class="close-modal-btn" id="closeDailyModal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid-3">
+                    <div class="input-group">
+                        <label>Date</label>
+                        <input id="d_date" type="date">
+                    </div>
+                    <div class="input-group">
+                        <label>Assigned To</label>
+                        <input id="d_assigned" type="text" placeholder="Admin / Supervisor">
+                    </div>
+                    <div class="input-group">
+                        <label>Priority</label>
+                        <select id="d_priority">
+                            <option>Normal</option>
+                            <option>Urgent</option>
+                            <option>Emergency</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid-2" style="margin-top:16px;">
+                    <div class="input-group" style="grid-column:1 / -1;">
+                        <label>Job Title</label>
+                        <input id="d_title" type="text" placeholder="What needs to be done?">
+                    </div>
+                </div>
+
+                <div class="form-grid-2" style="margin-top:16px;">
+                    <div class="input-group">
+                        <label>Status</label>
+                        <select id="d_status">
+                            <option>Open</option>
+                            <option>In Progress</option>
+                            <option>Done</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Notes</label>
+                        <input id="d_notes" type="text" placeholder="Optional">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelDaily">Cancel</button>
+                <button class="btn-danger" id="deleteDaily" style="display:none;"><i class="fas fa-trash"></i> Delete</button>
+                <button class="btn-add" id="saveDaily"><i class="fas fa-save"></i> Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="store.js"></script>
+    <script src="common.js"></script>
+    <script src="daily-jobs.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
