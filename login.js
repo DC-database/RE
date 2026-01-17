@@ -26,6 +26,16 @@
   }
 
   document.addEventListener('DOMContentLoaded', async () => {
+    // Show app version in the login screen.
+    try {
+      const v = window.IBAVersion;
+      const el = qs('#appVersion');
+      if (el && v && (v.version || v.label)) {
+        const label = typeof v.label === 'function' ? v.label() : `v${v.version}`;
+        el.textContent = `${label} • build ${v.buildDate || ''}`.trim();
+      }
+    } catch {}
+
     // If already logged in, go straight to the app.
     try {
       const user = await A.waitForUserOnce();

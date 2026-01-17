@@ -36,8 +36,56 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   setupMobileShell();
   setupUserMenu();
+  setupVersionUI();
   setupGlobalSearch();
 });
+
+function setupVersionUI() {
+  const v = window.IBAVersion;
+  if (!v || (!v.version && typeof v.label !== 'function')) return;
+
+  const label = typeof v.label === 'function' ? v.label() : `v${v.version}`;
+  const build = v.buildDate ? `build ${v.buildDate}` : '';
+
+  // Sidebar footer
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar && !sidebar.querySelector('.sidebar-footer')) {
+    const footer = document.createElement('div');
+    footer.className = 'sidebar-footer';
+    footer.innerHTML = `
+      <div class="sidebar-version" title="${label} ${build}">${label}</div>
+      <div class="sidebar-build">${build}</div>
+    `;
+    sidebar.appendChild(footer);
+  }
+
+  // Topbar badge (right side)
+  const topBar = document.querySelector('.top-bar');
+  if (topBar) {
+    let actions = topBar.querySelector('.topbar-actions');
+    if (!actions) {
+      actions = document.createElement('div');
+      actions.className = 'topbar-actions';
+      const searchBox = topBar.querySelector('.search-box');
+      if (searchBox) searchBox.insertAdjacentElement('afterend', actions);
+      else topBar.appendChild(actions);
+    }
+
+    if (!actions.querySelector('.version-badge')) {
+      const badge = document.createElement('div');
+      badge.className = 'version-badge';
+      badge.title = `${label} ${build}`.trim();
+      badge.textContent = label;
+      actions.prepend(badge);
+    }
+
+    // Include version in the page subtitle if present
+    const sub = topBar.querySelector('.sub-header');
+    if (sub && sub.textContent && !sub.textContent.includes(label)) {
+      sub.textContent = `${sub.textContent} • ${label}`;
+    }
+  }
+}
 
 function setupUserMenu() {
   const topBar = document.querySelector('.top-bar');
