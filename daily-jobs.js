@@ -63,7 +63,7 @@
     openModal('#dailyModal');
   }
 
-  function save() {
+  async function save() {
     const date = qs('#d_date').value;
     const title = qs('#d_title').value.trim();
     if (!date || !title) {
@@ -76,22 +76,23 @@
     const status = qs('#d_status').value;
     const notes = qs('#d_notes').value.trim();
 
-    S.upsert('dailyJobs', { id: editingId, date, title, assignedTo, priority, status, notes });
+    await S.upsert('dailyJobs', { id: editingId, date, title, assignedTo, priority, status, notes });
     toast('Daily job saved', 'success');
     closeModal('#dailyModal');
     render();
   }
 
-  function del() {
+  async function del() {
     if (!editingId) return;
     if (!confirmDialog('Delete this daily job?')) return;
-    S.removeById('dailyJobs', editingId);
+    await S.removeById('dailyJobs', editingId);
     toast('Deleted', 'success');
     closeModal('#dailyModal');
     render();
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    await window.IBAReady;
     wireModalOverlayClose('#dailyModal');
     qs('#btnAddDaily').addEventListener('click', openNew);
     qs('#closeDailyModal').addEventListener('click', () => closeModal('#dailyModal'));

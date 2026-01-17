@@ -94,7 +94,7 @@
     openModal('#propertyModal');
   }
 
-  function save() {
+  async function save() {
     const unitNo = qs('#p_unitNo').value.trim();
     const type = qs('#p_type').value;
     const locationText = qs('#p_location').value.trim();
@@ -106,13 +106,13 @@
       return;
     }
 
-    S.upsert('properties', { id: editingId, unitNo, type, location: locationText, monthlyRent: rent, notes });
+    await S.upsert('properties', { id: editingId, unitNo, type, location: locationText, monthlyRent: rent, notes });
     toast('Property saved', 'success');
     closeModal('#propertyModal');
     render();
   }
 
-  function del() {
+  async function del() {
     if (!editingId) return;
     const active = S.getActiveContractByProperty(editingId);
     if (active) {
@@ -120,13 +120,14 @@
       return;
     }
     if (!confirmDialog('Delete this property?')) return;
-    S.removeById('properties', editingId);
+    await S.removeById('properties', editingId);
     toast('Property deleted', 'success');
     closeModal('#propertyModal');
     render();
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    await window.IBAReady;
     wireModalOverlayClose('#propertyModal');
     qs('#btnAddProperty').addEventListener('click', openNew);
     qs('#closePropertyModal').addEventListener('click', () => closeModal('#propertyModal'));

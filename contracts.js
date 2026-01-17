@@ -84,9 +84,13 @@
 
   function clearForm() {
     editingId = null;
-    const db = S.loadDB();
-    const nextNo = `CTR-${String((db.meta.lastCode.contracts || 0) + 1).padStart(5, '0')}`;
-    qs('#cf_contractNo').value = nextNo;
+    const contracts = S.getAll('contracts');
+    let max = 0;
+    contracts.forEach((c) => {
+      const m = String(c.contractNo || '').match(/(\d+)$/);
+      if (m) max = Math.max(max, Number(m[1]));
+    });
+    qs('#cf_contractNo').value = `CTR-${String(max + 1).padStart(5, '0')}`;
     qs('#cf_startDate').value = '';
     qs('#cf_endDate').value = '';
     qs('#cf_rent').value = '';
@@ -126,7 +130,7 @@
     openModal('#contractModalFull');
   }
 
-  function save() {
+  async function save() {
     const propertyId = qs('#cf_property').value;
     const tenantId = qs('#cf_tenant').value;
     const startDate = qs('#cf_startDate').value;
@@ -158,13 +162,13 @@
       notes,
     };
 
-    const saved = S.createContract(payload);
+    const saved = await S.createContract(payload);
     toast(`Saved ${saved.contractNo}`, 'success');
     closeModal('#contractModalFull');
     render();
   }
 
-  function del() {
+  async function del() {
     if (!editingId) return;
     const hasPayments = S.getAll('payments').some((p) => String(p.contractId) === String(editingId));
     if (hasPayments) {
@@ -172,7 +176,7 @@
       return;
     }
     if (!confirmDialog('Delete this contract?')) return;
-    S.removeById('contracts', editingId);
+    await S.removeById('contracts', editingId);
     toast('Contract deleted', 'success');
     closeModal('#contractModalFull');
     render();
@@ -203,7 +207,8 @@
     }
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    await window.IBAReady;
     wireModalOverlayClose('#contractModalFull');
     qs('#btnAddContract').addEventListener('click', () => openNew(filterPropertyId, filterTenantId));
     qs('#closeContractModalFull').addEventListener('click', () => closeModal('#contractModalFull'));

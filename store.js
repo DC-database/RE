@@ -1,10 +1,19 @@
 /* --- store.js ---
-   LocalStorage-backed data store for demo purposes.
-   Later, you can replace these calls with Firebase.
+   Firebase Realtime Database-backed data store for demo.
+
+   Storage layout:
+     /users/<uid>/db  -> the whole demo DB object (properties, tenants, ...)
+
+   This is intentionally simple for demo.
 */
 
 (function () {
-  const DB_KEY = 'iba_demo_db_v1';
+  // Local fallback (in case Firebase isn't available)
+  const FALLBACK_DB_KEY = 'iba_demo_db_v1';
+
+  let _db = null;
+  let _uid = null;
+  let _readyPromise = null;
 
   function todayISO() {
     const d = new Date();
@@ -18,7 +27,6 @@
     const d = new Date(startISO + 'T00:00:00');
     const m = d.getMonth() + months;
     d.setMonth(m);
-    // handle month rollover
     if (d.getMonth() !== ((m % 12) + 12) % 12) d.setDate(0);
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -35,22 +43,11 @@
     }
   }
 
-  function newId(db, key) {
-    db.meta.lastId[key] = (db.meta.lastId[key] || 0) + 1;
-    return String(db.meta.lastId[key]);
-  }
-
-  function nextCode(db, key, prefix) {
-    db.meta.lastCode[key] = (db.meta.lastCode[key] || 0) + 1;
-    const num = String(db.meta.lastCode[key]).padStart(5, '0');
-    return `${prefix}-${num}`;
-  }
-
   function seedDemo() {
     const start = todayISO();
     const end = addMonthsISO(start, 12);
 
-    const db = {
+    return {
       properties: [
         { id: '1', unitNo: 'Villa 101', type: 'Villa', location: 'Al Waab', monthlyRent: 12000, notes: '' },
         { id: '2', unitNo: 'Villa 105', type: 'Villa', location: 'Al Thumama', monthlyRent: 10500, notes: '' },
@@ -97,9 +94,7 @@
           status: 'New',
           completionDate: '',
           laborCost: 0,
-          materials: [
-            { code: 'AC-FLT', name: 'Filter', qty: 1, unitCost: 50 },
-          ],
+          materials: [{ code: 'AC-FLT', name: 'Filter', qty: 1, unitCost: 50 }],
           notes: '',
         },
         {
@@ -113,9 +108,7 @@
           status: 'In Progress',
           completionDate: '',
           laborCost: 120,
-          materials: [
-            { code: 'EL-SKT', name: 'Socket', qty: 2, unitCost: 35 },
-          ],
+          materials: [{ code: 'EL-SKT', name: 'Socket', qty: 2, unitCost: 35 }],
           notes: '',
         },
       ],
@@ -136,92 +129,162 @@
         },
       ],
       meta: {
-        lastId: {
-          properties: 4,
-          tenants: 2,
-          contracts: 2,
-          maintenanceJobs: 2,
-          dailyJobs: 2,
-          payments: 1,
-        },
-        lastCode: {
-          contracts: 2,
-          maintenanceJobs: 2,
-        },
+        lastId: { properties: 4, tenants: 2, contracts: 2, maintenanceJobs: 2, dailyJobs: 2, payments: 1 },
+        lastCode: { contracts: 2, maintenanceJobs: 2 },
         createdAt: new Date().toISOString(),
       },
     };
-    return db;
   }
 
-  function loadDB() {
-    const raw = localStorage.getItem(DB_KEY);
+  function _assertReady() {
+    if (!_db) throw new Error('Store not initialized');
+  }
+
+  // ---- Local fallback (same as the original LocalStorage demo) ----
+  function _loadFallback() {
+    const raw = localStorage.getItem(FALLBACK_DB_KEY);
     if (!raw) {
       const seeded = seedDemo();
-      localStorage.setItem(DB_KEY, JSON.stringify(seeded));
+      localStorage.setItem(FALLBACK_DB_KEY, JSON.stringify(seeded));
       return seeded;
     }
     const db = safeParse(raw, null);
     if (!db || !db.meta) {
       const seeded = seedDemo();
-      localStorage.setItem(DB_KEY, JSON.stringify(seeded));
+      localStorage.setItem(FALLBACK_DB_KEY, JSON.stringify(seeded));
       return seeded;
     }
     return db;
   }
 
-  function saveDB(db) {
-    localStorage.setItem(DB_KEY, JSON.stringify(db));
+  function _saveFallback(db) {
+    localStorage.setItem(FALLBACK_DB_KEY, JSON.stringify(db));
+  }
+
+  function _hasFirebase() {
+    return Boolean(window.IBAFirebase && window.IBAAuth);
+  }
+
+  async function ensureReady() {
+    if (_readyPromise) return _readyPromise;
+
+    _readyPromise = (async () => {
+      if (!_hasFirebase()) {
+        _db = _loadFallback();
+        return _db;
+      }
+
+      const user = await window.IBAAuth.requireAuth();
+      if (!user) return null;
+
+      _uid = user.uid;
+      const path = window.IBAFirebase.userDbPath(_uid);
+      const snap = await window.IBAFirebase.dbGet(path);
+
+      if (!snap.exists()) {
+        _db = seedDemo();
+        await window.IBAFirebase.dbSet(path, _db);
+        return _db;
+      }
+
+      _db = snap.val();
+      if (!_db || !_db.meta) {
+        _db = seedDemo();
+        await window.IBAFirebase.dbSet(path, _db);
+      }
+
+      return _db;
+    })();
+
+    return _readyPromise;
+  }
+
+  async function loadDB() {
+    await ensureReady();
+    _assertReady();
+    return _db;
+  }
+
+  async function saveDB(db) {
+    await ensureReady();
+    _assertReady();
+    _db = db;
+
+    if (!_hasFirebase()) {
+      _saveFallback(_db);
+      return;
+    }
+
+    const path = window.IBAFirebase.userDbPath(_uid);
+    await window.IBAFirebase.dbSet(path, _db);
+  }
+
+  function newId(key) {
+    _db.meta.lastId[key] = (_db.meta.lastId[key] || 0) + 1;
+    return String(_db.meta.lastId[key]);
+  }
+
+  function nextCode(key, prefix) {
+    _db.meta.lastCode[key] = (_db.meta.lastCode[key] || 0) + 1;
+    const num = String(_db.meta.lastCode[key]).padStart(5, '0');
+    return `${prefix}-${num}`;
   }
 
   function getAll(collection) {
-    const db = loadDB();
-    return (db[collection] || []).slice();
+    _assertReady();
+    return (_db[collection] || []).slice();
   }
 
   function getById(collection, id) {
-    const db = loadDB();
-    return (db[collection] || []).find((x) => String(x.id) === String(id)) || null;
+    _assertReady();
+    return (_db[collection] || []).find((x) => String(x.id) === String(id)) || null;
   }
 
-  function upsert(collection, item) {
-    const db = loadDB();
-    const arr = db[collection] || [];
+  async function upsert(collection, item) {
+    await ensureReady();
+    _assertReady();
+
+    const arr = _db[collection] || [];
     const isNew = !item.id;
-    const id = isNew ? newId(db, collection) : String(item.id);
+    const id = isNew ? newId(collection) : String(item.id);
     const idx = arr.findIndex((x) => String(x.id) === id);
 
     const normalized = { ...item, id };
     if (idx >= 0) arr[idx] = normalized;
     else arr.unshift(normalized);
 
-    db[collection] = arr;
-    saveDB(db);
+    _db[collection] = arr;
+    await saveDB(_db);
     return normalized;
   }
 
-  function removeById(collection, id) {
-    const db = loadDB();
-    db[collection] = (db[collection] || []).filter((x) => String(x.id) !== String(id));
-    saveDB(db);
+  async function removeById(collection, id) {
+    await ensureReady();
+    _assertReady();
+    _db[collection] = (_db[collection] || []).filter((x) => String(x.id) !== String(id));
+    await saveDB(_db);
   }
 
-  function resetDemo() {
-    const seeded = seedDemo();
-    localStorage.setItem(DB_KEY, JSON.stringify(seeded));
-    return seeded;
+  async function resetDemo() {
+    await ensureReady();
+    _db = seedDemo();
+    await saveDB(_db);
+    return _db;
   }
 
   function exportJSON() {
-    return JSON.stringify(loadDB(), null, 2);
+    _assertReady();
+    return JSON.stringify(_db, null, 2);
   }
 
-  function importJSON(jsonText) {
+  async function importJSON(jsonText) {
+    await ensureReady();
     const parsed = safeParse(jsonText, null);
     if (!parsed || typeof parsed !== 'object') throw new Error('Invalid JSON');
     if (!parsed.meta || !parsed.properties || !parsed.tenants) throw new Error('Missing required fields');
-    localStorage.setItem(DB_KEY, JSON.stringify(parsed));
-    return loadDB();
+    _db = parsed;
+    await saveDB(_db);
+    return _db;
   }
 
   function isContractActive(contract) {
@@ -246,24 +309,45 @@
     return getById('properties', contract.propertyId);
   }
 
-  function createContract(item) {
-    const db = loadDB();
-    const contractNo = item.contractNo || `CTR-${String((db.meta.lastCode.contracts || 0) + 1).padStart(5, '0')}`;
-    const saved = upsert('contracts', { ...item, contractNo });
-    // advance code if it was new
+  async function createContract(item) {
+    await ensureReady();
+    _assertReady();
+
+    const contractNo = item.contractNo || `CTR-${String((_db.meta.lastCode.contracts || 0) + 1).padStart(5, '0')}`;
+    const saved = await upsert('contracts', { ...item, contractNo });
+
     if (!item.id) {
-      db.meta.lastCode.contracts = (db.meta.lastCode.contracts || 0) + 1;
-      saveDB(db);
+      _db.meta.lastCode.contracts = (_db.meta.lastCode.contracts || 0) + 1;
+      await saveDB(_db);
     }
     return saved;
   }
 
-  function createMaintenanceJob(item) {
-    const db = loadDB();
-    const jobNo = item.jobNo || nextCode(db, 'maintenanceJobs', 'JB');
-    // ensure db saved with updated code counter
-    saveDB(db);
-    return upsert('maintenanceJobs', { ...item, jobNo });
+  async function createMaintenanceJob(item) {
+    await ensureReady();
+    _assertReady();
+
+    const isNew = !item.id;
+    let jobNo = item.jobNo;
+
+    if (!jobNo) {
+      // Generate new job number and bump meta counter.
+      jobNo = nextCode('maintenanceJobs', 'JB');
+    } else if (isNew) {
+      // If UI provided a job number for a *new* job, keep it,
+      // but ensure the meta counter doesn't go backwards.
+      const m = String(jobNo).match(/(\d+)$/);
+      if (m) {
+        const n = Number(m[1]);
+        if (!_db.meta.lastCode) _db.meta.lastCode = {};
+        _db.meta.lastCode.maintenanceJobs = Math.max(Number(_db.meta.lastCode.maintenanceJobs) || 0, n);
+      }
+    }
+
+    const saved = await upsert('maintenanceJobs', { ...item, jobNo });
+    // Persist meta updates (and keep parity with other create* methods)
+    await saveDB(_db);
+    return saved;
   }
 
   function computeMaintenanceTotal(job) {
@@ -284,7 +368,9 @@
     return getRecentPayments(days).some((p) => String(p.contractId) === String(contractId) && p.status === 'Received');
   }
 
+  // Expose store
   window.IBAStore = {
+    ensureReady,
     loadDB,
     saveDB,
     getAll,

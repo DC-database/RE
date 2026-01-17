@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IBA System - Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="login-page">
+  <div class="login-card">
+    <div class="login-brand">
+      <i class="fas fa-city"></i>
+      IBA System
+    </div>
+    <div class="login-sub" id="loginSubtitle">Sign in to access your demo data (Firebase)</div>
+
+    <div class="input-group">
+      <label>Email</label>
+      <input id="email" type="email" placeholder="you@example.com" autocomplete="username" />
+    </div>
+
+    <div class="input-group" style="margin-top:12px;">
+      <label>Password</label>
+      <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+
+    <div class="input-group" id="confirmWrap" style="margin-top:12px; display:none;">
+      <label>Confirm Password</label>
+      <input id="confirm" type="password" placeholder="••••••••" autocomplete="new-password" />
+    </div>
+
+    <div class="login-actions">
+      <button class="btn-add" id="btnSubmit"><i class="fas fa-right-to-bracket"></i> <span id="submitText">Login</span></button>
+      <button class="btn-secondary" id="btnDemo" title="Fill demo credentials"><i class="fas fa-wand-magic-sparkles"></i></button>
+    </div>
+
+    <div class="login-switch">
+      <span id="switchText">No account?</span>
+      <a href="#" id="switchLink">Create one</a>
+    </div>
+
+    <p style="margin-top:14px; font-size:12px; color:#94a3b8; line-height:1.4;">
+      Tip: Enable <strong>Email/Password</strong> in Firebase Authentication to use this login.
+    </p>
+  </div>
+
+  <script type="module" src="firebase-init.js"></script>
+  <script type="module" src="common.js"></script>
+  <script type="module" src="login.js"></script>
+</body>
+</html>

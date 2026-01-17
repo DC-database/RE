@@ -632,3 +632,27 @@ td { padding: 15px; border-bottom: 1px solid #f1f5f9; color: var(--primary-text)
 
     .data-table-container table { min-width: 680px; }
 }
+
+
+/* --- Firebase Auth UI --- */
+.topbar-actions{display:flex;align-items:center;gap:10px;margin-left:12px;}
+.user-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;background:#ffffff;border:1px solid #e2e8f0;border-radius:999px;font-size:12px;color:#0f172a;}
+.user-badge i{font-size:16px;}
+.user-badge .user-email{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.btn-logout{display:inline-flex;align-items:center;gap:8px;}
+.hide-mobile{display:inline;}
+@media (max-width: 768px){
+  .user-badge .user-email{display:none;}
+  .hide-mobile{display:none;}
+}
+
+/* --- Login page --- */
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(180deg,#f8fafc,#fff);}
+.login-card{width:min(420px,100%);background:#ffffff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 12px 30px rgba(2,6,23,0.06);padding:22px;}
+.login-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;margin-bottom:6px;}
+.login-brand i{color:#FF9EAA;}
+.login-sub{color:#64748b;font-size:13px;margin-bottom:16px;}
+.login-actions{display:flex;gap:10px;margin-top:14px;}
+.login-actions .btn-add,.login-actions .btn-secondary{flex:1;justify-content:center;}
+.login-switch{margin-top:12px;color:#64748b;font-size:13px;text-align:center;}
+.login-switch a{color:#FF9EAA;text-decoration:none;font-weight:600;}

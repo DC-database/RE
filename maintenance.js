@@ -65,9 +65,13 @@
   }
 
   function newJobNo() {
-    const db = S.loadDB();
-    const next = (db.meta.lastCode.maintenance || 0) + 1;
-    return `JB-${String(next).padStart(5, '0')}`;
+    const jobs = S.getAll('maintenanceJobs');
+    let max = 0;
+    jobs.forEach((j) => {
+      const m = String(j.jobNo || '').match(/(\d+)$/);
+      if (m) max = Math.max(max, Number(m[1]));
+    });
+    return `JB-${String(max + 1).padStart(5, '0')}`;
   }
 
   function clearForm() {
@@ -169,7 +173,7 @@
     qs('#m_total').value = money(materialsTotal + labor);
   }
 
-  function save() {
+  async function save() {
     const jobNo = qs('#m_jobNo').value;
     const requestDate = qs('#m_date').value;
     const priority = qs('#m_priority').value;
@@ -206,22 +210,23 @@
       materials,
     };
 
-    S.createMaintenanceJob(payload);
+    await S.createMaintenanceJob(payload);
     toast('Maintenance job saved', 'success');
     closeModal('#maintenanceModal');
     renderTable();
   }
 
-  function del() {
+  async function del() {
     if (!editingId) return;
     if (!confirmDialog('Delete this maintenance job?')) return;
-    S.removeById('maintenanceJobs', editingId);
+    await S.removeById('maintenanceJobs', editingId);
     toast('Deleted', 'success');
     closeModal('#maintenanceModal');
     renderTable();
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    await window.IBAReady;
     wireModalOverlayClose('#maintenanceModal');
 
     qsa('.tab-btn').forEach((b) => b.addEventListener('click', () => setTab(b.getAttribute('data-tab'))));

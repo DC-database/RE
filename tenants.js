@@ -91,7 +91,7 @@
     openModal('#tenantModal');
   }
 
-  function save() {
+  async function save() {
     const name = qs('#t_name').value.trim();
     if (!name) {
       toast('Name is required', 'error');
@@ -102,13 +102,13 @@
     const idNumber = qs('#t_id').value.trim();
     const notes = qs('#t_notes').value.trim();
 
-    S.upsert('tenants', { id: editingId, name, phone, email, idNumber, notes });
+    await S.upsert('tenants', { id: editingId, name, phone, email, idNumber, notes });
     toast('Tenant saved', 'success');
     closeModal('#tenantModal');
     render();
   }
 
-  function del() {
+  async function del() {
     if (!editingId) return;
     const active = getActiveContractForTenant(editingId);
     if (active) {
@@ -116,13 +116,14 @@
       return;
     }
     if (!confirmDialog('Delete this tenant?')) return;
-    S.removeById('tenants', editingId);
+    await S.removeById('tenants', editingId);
     toast('Tenant deleted', 'success');
     closeModal('#tenantModal');
     render();
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    await window.IBAReady;
     wireModalOverlayClose('#tenantModal');
     qs('#btnAddTenant').addEventListener('click', openNew);
     qs('#closeTenantModal').addEventListener('click', () => closeModal('#tenantModal'));

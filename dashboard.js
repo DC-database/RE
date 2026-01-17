@@ -165,11 +165,19 @@
     if (p) qs('#c_rent').value = Number(p.monthlyRent) || '';
   }
 
+  function nextContractNo() {
+    const contracts = S.getAll('contracts');
+    let max = 0;
+    contracts.forEach((c) => {
+      const m = String(c.contractNo || '').match(/(\d+)$/);
+      if (m) max = Math.max(max, Number(m[1]));
+    });
+    return `CTR-${String(max + 1).padStart(5, '0')}`;
+  }
+
   function openQuickContract(propertyId = null) {
     editingContractId = null;
-    const db = S.loadDB();
-    const nextNo = `CTR-${String((db.meta.lastCode.contracts || 0) + 1).padStart(5, '0')}`;
-    qs('#c_contractNo').value = nextNo;
+    qs('#c_contractNo').value = nextContractNo();
     const now = new Date();
     const yyyy = now.getFullYear();
     const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -192,7 +200,7 @@
     openModal('#contractModal');
   }
 
-  function saveContract() {
+  async function saveContract() {
     const propertyId = qs('#c_property').value;
     const tenantId = qs('#c_tenant').value;
     const startDate = qs('#c_startDate').value;
@@ -225,7 +233,7 @@
       notes,
     };
 
-    const saved = S.createContract(payload);
+    const saved = await S.createContract(payload);
     toast(`Saved ${saved.contractNo}`, 'success');
     closeModal('#contractModal');
     renderAll();
@@ -250,7 +258,8 @@
     renderMaintenanceTable();
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    await window.IBAReady;
     wireContractModal();
     renderAll();
   });

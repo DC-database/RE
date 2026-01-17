@@ -121,7 +121,8 @@
     `).join('') || `<tr><td colspan="4" class="muted">No properties yet.</td></tr>`;
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    await window.IBAReady;
     renderStats();
     renderExpiry();
     renderTopRent();

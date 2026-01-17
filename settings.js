@@ -19,9 +19,9 @@
     URL.revokeObjectURL(url);
   }
 
-  function resetDemo() {
-    if (!confirmDialog('Reset demo data? This will overwrite current LocalStorage data.')) return;
-    S.resetDemo();
+  async function resetDemo() {
+    if (!confirmDialog('Reset demo data? This will overwrite your current Firebase demo data (for this user).')) return;
+    await S.resetDemo();
     toast('Demo data reset', 'success');
   }
 
@@ -34,17 +34,20 @@
   function importJSON(file) {
     const reader = new FileReader();
     reader.onload = () => {
-      try {
-        S.importJSON(String(reader.result || ''));
-        toast('Imported JSON', 'success');
-      } catch (e) {
-        toast(`Import failed: ${e.message || e}`, 'error');
-      }
+      (async () => {
+        try {
+          await S.importJSON(String(reader.result || ''));
+          toast('Imported JSON', 'success');
+        } catch (e) {
+          toast(`Import failed: ${e.message || e}`, 'error');
+        }
+      })();
     };
     reader.readAsText(file);
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    await window.IBAReady;
     qs('#btnResetDemo').addEventListener('click', resetDemo);
     qs('#btnExport').addEventListener('click', exportJSON);
     qs('#importFile').addEventListener('change', (e) => {

@@ -1,20 +1,89 @@
 /* --- app.js ---
    Global logic for all pages.
+
+   This version:
+   - Requires login (Firebase Auth) when Firebase is present.
+   - Loads the demo DB from Firebase Realtime Database (per-user) when available.
 */
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Ensure DB exists
-  if (window.IBAStore && window.IBAStore.loadDB) {
-    window.IBAStore.loadDB();
+// A global promise that resolves when auth + DB are ready.
+window.IBAReady = (async () => {
+  try {
+    // If Firebase Auth is present, require a user (except login.html).
+    if (window.IBAAuth && typeof window.IBAAuth.requireAuth === 'function') {
+      const user = await window.IBAAuth.requireAuth();
+      if (!user) return null;
+    }
+
+    // Ensure the data store is ready (Firebase or local fallback).
+    if (window.IBAStore && typeof window.IBAStore.ensureReady === 'function') {
+      await window.IBAStore.ensureReady();
+    }
+
+    return (window.IBAAuth && typeof window.IBAAuth.getUser === 'function') ? window.IBAAuth.getUser() : null;
+  } catch (e) {
+    console.error('IBAReady failed:', e);
+    return null;
   }
+})();
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await window.IBAReady;
 
   if (window.IBACommon && window.IBACommon.setActiveNav) {
     window.IBACommon.setActiveNav();
   }
 
   setupMobileShell();
+  setupUserMenu();
   setupGlobalSearch();
 });
+
+function setupUserMenu() {
+  const topBar = document.querySelector('.top-bar');
+  if (!topBar) return;
+
+  const user = window.IBAAuth && window.IBAAuth.getUser ? window.IBAAuth.getUser() : null;
+  if (!user) return;
+
+  let actions = topBar.querySelector('.topbar-actions');
+  if (!actions) {
+    actions = document.createElement('div');
+    actions.className = 'topbar-actions';
+
+    const searchBox = topBar.querySelector('.search-box');
+    if (searchBox) searchBox.insertAdjacentElement('afterend', actions);
+    else topBar.appendChild(actions);
+  }
+
+  if (!actions.querySelector('#btnLogout')) {
+    const btn = document.createElement('button');
+    btn.id = 'btnLogout';
+    btn.type = 'button';
+    btn.className = 'btn-secondary btn-logout';
+    btn.innerHTML = `<i class="fas fa-right-from-bracket"></i><span class="hide-mobile">Logout</span>`;
+
+    btn.addEventListener('click', async () => {
+      try {
+        await window.IBAAuth.logout();
+      } finally {
+        location.replace('login.html');
+      }
+    });
+
+    const badge = document.createElement('div');
+    badge.className = 'user-badge';
+    badge.title = user.email || 'Signed in';
+    badge.innerHTML = `<i class="fas fa-circle-user"></i><span class="user-email">${user.email || 'User'}</span>`;
+
+    actions.appendChild(badge);
+    actions.appendChild(btn);
+
+    // Update any page subtitle.
+    const sub = topBar.querySelector('.sub-header');
+    if (sub) sub.textContent = `Signed in as ${user.email || 'user'} (Firebase)`;
+  }
+}
 
 function setupMobileShell() {
   const sidebar = document.querySelector('.sidebar');
@@ -98,7 +167,6 @@ function setupMobileShell() {
 }
 
 function setupGlobalSearch() {
-  // Global search (simple demo): shows a small dropdown with matches.
   const searchInput = document.getElementById('globalSearch');
   if (!searchInput || !window.IBAStore || !window.IBACommon) return;
 
@@ -178,7 +246,6 @@ function setupGlobalSearch() {
   });
 
   searchInput.addEventListener('blur', () => {
-    // Delay so clicks on dropdown work
     setTimeout(() => {
       wrap.style.borderColor = '#e2e8f0';
       wrap.style.boxShadow = 'none';

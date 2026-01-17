@@ -99,7 +99,7 @@
     openModal('#paymentModal');
   }
 
-  function save() {
+  async function save() {
     const date = qs('#pay_date').value;
     const contractId = qs('#pay_contract').value;
     const amount = Number(qs('#pay_amount').value) || 0;
@@ -113,16 +113,16 @@
       return;
     }
 
-    S.upsert('payments', { id: editingId, date, contractId, amount, status, method, reference, notes });
+    await S.upsert('payments', { id: editingId, date, contractId, amount, status, method, reference, notes });
     toast('Payment saved', 'success');
     closeModal('#paymentModal');
     render();
   }
 
-  function del() {
+  async function del() {
     if (!editingId) return;
     if (!confirmDialog('Delete this payment?')) return;
-    S.removeById('payments', editingId);
+    await S.removeById('payments', editingId);
     toast('Payment deleted', 'success');
     closeModal('#paymentModal');
     render();
@@ -136,7 +136,8 @@
     if (contract) filterContractId = contract;
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    await window.IBAReady;
     parseHash();
     wireModalOverlayClose('#paymentModal');
     qs('#btnAddPayment').addEventListener('click', openNew);
